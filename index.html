@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Haftalık Ders Programı</title>
+  <style>
+    :root{
+      --bg:#050505; --panel:#111; --panel2:#171717; --gold:#d4af37; --gold2:#ffdb70; --text:#f5f5f5; --muted:#b8b8b8; --bad:#ff5c5c;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#26200b 0,#070707 42%,#000 100%);color:var(--text);min-height:100vh}
+    .wrap{width:min(1150px,94%);margin:auto;padding:28px 0 40px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+    .brand h1{margin:0;font-size:clamp(26px,5vw,48px);letter-spacing:-1px;color:var(--gold2)}
+    .brand p{margin:6px 0 0;color:var(--muted)}
+    .pill{border:1px solid rgba(212,175,55,.5);color:var(--gold2);padding:10px 14px;border-radius:999px;background:rgba(212,175,55,.08);white-space:nowrap}
+    .login{min-height:70vh;display:grid;place-items:center}
+    .login-card{width:min(440px,100%);background:rgba(17,17,17,.92);border:1px solid rgba(212,175,55,.35);border-radius:24px;padding:28px;box-shadow:0 20px 70px rgba(0,0,0,.45)}
+    .login-card h2{margin:0 0 10px;color:var(--gold2)}
+    input,textarea,select{width:100%;border:1px solid #333;background:#090909;color:white;border-radius:14px;padding:12px;font-size:15px;outline:none}
+    textarea{min-height:86px;resize:vertical}
+    input:focus,textarea:focus,select:focus{border-color:var(--gold)}
+    button{border:0;border-radius:14px;padding:12px 14px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#171100}
+    button.secondary{background:#222;color:var(--gold2);border:1px solid rgba(212,175,55,.35)}
+    button.danger{background:#2b1111;color:#ffb0b0;border:1px solid rgba(255,92,92,.35)}
+    .row{display:flex;gap:10px;align-items:center}.row>*{flex:1}
+    .tabs{display:flex;gap:10px;overflow:auto;padding:6px 0 14px;scroll-snap-type:x mandatory}
+    .tab{min-width:150px;background:rgba(17,17,17,.9);border:1px solid #292929;border-radius:18px;padding:14px;cursor:pointer;scroll-snap-align:start;transition:.2s}
+    .tab.active{border-color:var(--gold);box-shadow:0 0 0 2px rgba(212,175,55,.12);transform:translateY(-2px)}
+    .tab b{display:block;color:var(--gold2);font-size:18px}.tab span{color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.card{background:rgba(17,17,17,.92);border:1px solid #292929;border-radius:24px;padding:18px;box-shadow:0 16px 45px rgba(0,0,0,.28)}
+    .card h2,.card h3{margin:0 0 12px;color:var(--gold2)}
+    .lesson{background:linear-gradient(180deg,#161616,#0d0d0d);border:1px solid #2b2b2b;border-radius:18px;padding:14px;margin:10px 0}
+    .lesson-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}.lesson-title{color:var(--gold2);font-size:20px;font-weight:800}
+    .small{font-size:13px;color:var(--muted)}
+    .mini{display:grid;grid-template-columns:1fr 110px;gap:10px;margin-top:10px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}.stat{background:#0b0b0b;border:1px solid #282828;border-radius:18px;padding:14px;text-align:center}.stat b{display:block;color:var(--gold2);font-size:24px}.stat span{color:var(--muted);font-size:12px}
+    .week{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.day-mini{background:#0b0b0b;border:1px solid #272727;border-radius:16px;padding:12px}.day-mini b{color:var(--gold2)}
+    .hidden{display:none!important}.err{color:#ff8b8b;margin-top:10px}.footer{margin-top:18px;color:#777;text-align:center;font-size:12px}
+    @media(max-width:850px){header{display:block}.pill{display:inline-block;margin-top:12px}.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.week{grid-template-columns:1fr}.mini{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div id="login" class="login wrap">
+    <div class="login-card">
+      <h2>Programa giriş</h2>
+      <p class="small">Şifre: <b>diabolus</b></p>
+      <input id="pass" type="password" placeholder="Şifreyi yaz" autocomplete="current-password" />
+      <div class="actions"><button onclick="login()">Giriş yap</button></div>
+      <div id="err" class="err"></div>
+    </div>
+  </div>
+
+  <main id="app" class="wrap hidden">
+    <header>
+      <div class="brand"><h1>Haftalık Ders Programı</h1><p>Konu yaz, soru sayısı gir, otomatik kaydolsun.</p></div>
+      <div class="pill" id="todayPill">Bugün</div>
+    </header>
+
+    <div class="tabs" id="tabs"></div>
+    <section class="grid">
+      <div class="card">
+        <h2 id="dayTitle">Gün</h2>
+        <div id="lessons"></div>
+        <div class="actions">
+          <button onclick="saveData()">Kaydet</button>
+          <button class="secondary" onclick="clearDay()">Bu günü temizle</button>
+          <button class="danger" onclick="resetAll()">Her şeyi sıfırla</button>
+        </div>
+      </div>
+      <aside class="card">
+        <h3>Özet</h3>
+        <div class="stats">
+          <div class="stat"><b id="totalQ">0</b><span>Toplam soru</span></div>
+          <div class="stat"><b id="filledT">0</b><span>Yazılan konu</span></div>
+          <div class="stat"><b id="lessonC">0</b><span>Ders</span></div>
+        </div>
+        <h3>Haftanın tamamı</h3>
+        <div class="week" id="weekBox"></div>
+      </aside>
+    </section>
+    <div class="footer">Veriler bu tarayıcıda saklanır. Başka cihazda görünmez.</div>
+  </main>
+
+<script>
+const PASSWORD='diabolus';
+const plan={
+  'Pazartesi':['Matematik','Kimya','Tarih'],
+  'Salı':['Geometri','Fizik','Coğrafya'],
+  'Çarşamba':['Matematik','Türkçe','Biyoloji'],
+  'Perşembe':['Geometri','Kimya','Coğrafya'],
+  'Cuma':['Matematik','Fizik','Türkçe'],
+  'Cumartesi':['Geometri','Biyoloji','Tarih']
+};
+let current='Pazartesi';
+let data=JSON.parse(localStorage.getItem('dersProgramiData')||'{}');
+function login(){
+  const p=document.getElementById('pass').value.trim();
+  if(p===PASSWORD){localStorage.setItem('dersLogin','1');showApp()} else document.getElementById('err').textContent='Şifre yanlış kanka.';
+}
+function showApp(){document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');init()}
+function init(){
+  const days=Object.keys(plan); const trDay=['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'][new Date().getDay()];
+  if(plan[trDay]) current=trDay; document.getElementById('todayPill').textContent='Bugün: '+trDay;
+  renderTabs(); renderDay(); renderSummary();
+}
+function renderTabs(){
+  const tabs=document.getElementById('tabs'); tabs.innerHTML='';
+  Object.keys(plan).forEach(d=>{const el=document.createElement('div');el.className='tab '+(d===current?'active':'');el.onclick=()=>{saveData();current=d;renderTabs();renderDay();renderSummary()};el.innerHTML=`<b>${d}</b><span>${plan[d].join(' • ')}</span>`;tabs.appendChild(el)});
+}
+function key(d,l,t){return d+'__'+l+'__'+t}
+function renderDay(){
+  document.getElementById('dayTitle').textContent=current;
+  const box=document.getElementById('lessons'); box.innerHTML='';
+  plan[current].forEach(l=>{
+    const topic=data[key(current,l,'topic')]||''; const q=data[key(current,l,'q')]||''; const note=data[key(current,l,'note')]||'';
+    const div=document.createElement('div'); div.className='lesson';
+    div.innerHTML=`<div class="lesson-head"><div class="lesson-title">${l}</div><div class="small">Konu + soru</div></div>
+      <textarea data-k="${key(current,l,'topic')}" placeholder="${l} konusu yaz...">${topic}</textarea>
+      <div class="mini"><input data-k="${key(current,l,'note')}" value="${note}" placeholder="Kısa not / hedef"/><input type="number" min="0" data-k="${key(current,l,'q')}" value="${q}" placeholder="Soru"/></div>`;
+    box.appendChild(div);
+  });
+  box.querySelectorAll('input,textarea').forEach(i=>i.addEventListener('input',()=>{data[i.dataset.k]=i.value;localStorage.setItem('dersProgramiData',JSON.stringify(data));renderSummary()}));
+}
+function saveData(){localStorage.setItem('dersProgramiData',JSON.stringify(data));renderSummary()}
+function clearDay(){if(!confirm(current+' temizlensin mi?'))return;plan[current].forEach(l=>['topic','q','note'].forEach(t=>delete data[key(current,l,t)]));saveData();renderDay()}
+function resetAll(){if(!confirm('Tüm kayıtlar silinsin mi?'))return;data={};saveData();renderDay()}
+function renderSummary(){
+  let total=0,filled=0,lessons=0; const week=document.getElementById('weekBox'); week.innerHTML='';
+  Object.entries(plan).forEach(([d,ls])=>{let dayQ=0, dayFilled=0; lessons+=ls.length; ls.forEach(l=>{dayQ+=Number(data[key(d,l,'q')]||0); if((data[key(d,l,'topic')]||'').trim()) dayFilled++;}); total+=dayQ; filled+=dayFilled; const div=document.createElement('div'); div.className='day-mini'; div.innerHTML=`<b>${d}</b><div class="small">${dayFilled}/${ls.length} konu • ${dayQ} soru</div>`; week.appendChild(div)});
+  document.getElementById('totalQ').textContent=total; document.getElementById('filledT').textContent=filled; document.getElementById('lessonC').textContent=lessons;
+}
+document.getElementById('pass').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+if(localStorage.getItem('dersLogin')==='1')showApp();
+</script>
+</body>
+</html>
